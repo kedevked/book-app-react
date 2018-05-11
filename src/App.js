@@ -1,5 +1,4 @@
 import React from 'react'
-// import * as BooksAPI from './BooksAPI'
 import './App.css'
 import {Route, Link} from 'react-router-dom'
 import ListBooks from './ListBooks'
@@ -21,7 +20,7 @@ class BooksApp extends React.Component {
 
   updateShelf = (book, shelf) => {
     let books;
-    if (this.state.books.includes(book)) {
+    if (this.state.books.findIndex(b => b.id === book.id) > 0) {
       // change the position of an existing book in the shelf
       books = this.state.books.map(b => {
         if (b.id === book.id) {
@@ -44,13 +43,24 @@ class BooksApp extends React.Component {
 
   updateQuery = (query) => {
     this.setState({query: query})
-
+    let showingBooks = []
     if (query) {
       BooksAPI.search(query).then(response => {
-        this.setState({showingBooks: response})
+        if (response.length) {
+         showingBooks = response.map(b => {
+           const index = this.state.books.findIndex(c => c.id === b.id)
+            if( index >= 0 ) {
+              return this.state.books[index]
+            } else {
+              return b
+            }
+          })
+        }
+        this.setState({showingBooks})
       })
-    } else {
-      this.setState({showingBooks: []})
+    }
+    else {
+      this.setState({showingBooks})
     }
   }
   
@@ -64,7 +74,7 @@ class BooksApp extends React.Component {
         <Route exact path='/search' render={() => (
           <div className="search-books">
             <div className="search-books-bar">
-              <Link className="close-search" to='/'>Close</Link>
+              <Link className="close-search" to="/">Close</Link>
               <div className="search-books-input-wrapper">
                 <input type="text"
                        placeholder="Search by title or author"
